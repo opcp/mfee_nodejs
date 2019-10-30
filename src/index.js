@@ -19,7 +19,6 @@ db.connect(error => {
 });
 
 const whitelist = [
-  "http://localhost:5000",
   "http://localhost:3001",
   "http://localhost:3000",
   undefined
