@@ -7,8 +7,9 @@ const axios = require("axios");
 
 const app = express();
 const db = mysql.createConnection({
-  host: "192.168.27.186",
-  user: "shan",
+  // host: "192.168.27.186",
+  host: "localhost",
+  user: "opcp",
   password: "opcp2428",
   database: "pbook"
 });
@@ -25,7 +26,7 @@ const whitelist = [
 ];
 const corsOptions = {
   credentials: true,
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     console.log(origin);
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true); //允許
@@ -42,7 +43,9 @@ app.use(morgan("dev"));
 app.get("/", (req, res) => {
   res.json({ success: true });
 });
-app.get("/reviews", (req, res) => {
+
+
+app.post("/categoryBar", (req, res) => {
   const sql = "SELECT * FROM `vb_categories` WHERE 1";
   db.query(sql, (error, results) => {
     if (error) {
@@ -54,6 +57,21 @@ app.get("/reviews", (req, res) => {
     }
   });
 });
+
+
+app.post("/bookInfo", (req, res) => {
+  const sql = "SELECT * FROM `vb_books` WHERE 1"
+  db.query(sql, (error, results) => {
+    if (error) {
+      return res.send(error);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  });
+});
+
 
 app.listen(4000, () => {
   console.log("4000 連結成功");
