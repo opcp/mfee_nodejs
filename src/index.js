@@ -4,12 +4,13 @@ const cors = require("cors");
 const morgan = require("morgan");
 const body_parser = require("body-parser");
 const axios = require("axios");
+const bluebird = require('bluebird')
 
 const app = express();
 const db = mysql.createConnection({
   // host: "192.168.27.186",
-  host: "localhost",
-  user: "opcp",
+  host: "192.168.27.186",
+  user: "shan",
   password: "opcp2428",
   database: "pbook"
 });
@@ -18,15 +19,12 @@ db.connect(error => {
     return error;
   }
 });
+bluebird.promisifyAll(db);
 
-const whitelist = [
-  "http://localhost:3001",
-  "http://localhost:3000",
-  undefined
-];
+const whitelist = ["http://localhost:3001", "http://localhost:3000", undefined];
 const corsOptions = {
   credentials: true,
-  origin: function (origin, callback) {
+  origin: function(origin, callback) {
     console.log(origin);
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true); //允許
@@ -44,7 +42,6 @@ app.get("/", (req, res) => {
   res.json({ success: true });
 });
 
-
 app.post("/categoryBar", (req, res) => {
   const sql = "SELECT * FROM `vb_categories` WHERE 1";
   db.query(sql, (error, results) => {
@@ -58,20 +55,33 @@ app.post("/categoryBar", (req, res) => {
   });
 });
 
-
-app.post("/bookInfo", (req, res) => {
-  const sql = "SELECT * FROM `vb_books` WHERE 1"
-  db.query(sql, (error, results) => {
-    if (error) {
-      return res.send(error);
-    } else {
-      return res.json({
-        data: results
-      });
-    }
-  });
+app.get("/bookInfo/:page?", (req, res) => {
+  let page = req.params.page || 1;
+  let perPage = 10;
+  let output = {};
+  db.queryAsync("SELECT COUNT(1) total FROM `vb_books`")
+    .then(results => {
+      output.total = results[0].total;
+      return db.queryAsync(
+        `SELECT * FROM vb_books LIMIT ${(page - 1) * perPage},${perPage}`
+      );
+      
+    })
+    .then(results => {
+      output.rows = results;
+      res.json(output);
+    })
+    .catch(error => {
+      console.log(error);
+      res.send(error);
+    });
 });
 
+app.use((req, response) => {
+  response.type('text/plain')
+  response.status(404);
+  response.send(`404 找不到頁面喔`)
+})
 
 app.listen(4000, () => {
   console.log("4000 連結成功");
