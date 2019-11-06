@@ -9,8 +9,8 @@ const bluebird = require("bluebird");
 const app = express();
 const db = mysql.createConnection({
   // host: "192.168.27.186",
-  host: "192.168.27.186",
-  user: "shan",
+  host: "localhost",
+  user: "opcp",
   password: "opcp2428",
   database: "pbook"
 });
@@ -25,7 +25,6 @@ const whitelist = ["http://localhost:3001", "http://localhost:3000", undefined];
 const corsOptions = {
   credentials: true,
   origin: function(origin, callback) {
-    console.log(origin);
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true); //允許
     } else {
@@ -42,6 +41,7 @@ app.get("/", (req, res) => {
   res.json({ success: true });
 });
 
+//分類
 app.post("/categoryBar", (req, res) => {
   const sql = "SELECT * FROM `vb_categories` WHERE 1";
   db.query(sql, (error, results) => {
@@ -54,17 +54,34 @@ app.post("/categoryBar", (req, res) => {
     }
   });
 });
-
-app.get("/bookInfo/:page?", (req, res) => {
+// `SELECT * FROM vb_books LIMIT ${(page - 1) * perPage},${perPage}`
+// SELECT * FROM `vb_books` WHERE `categories` = 16 ORDER BY `publish_date` DESC LIMIT 5
+//書本內容
+app.get("/reviews/:category?/:array?/:page?", (req, res) => {
+  let c = req.params.category
+  if(req.params.category == undefined){
+    c = ''
+  }else{
+    c = '='+ req.params.category
+  }
+  let a = req.params.array
+  if(req.params.array == 1){
+    a = 'page' 
+  }else if(req.params.array == 2){
+    a = 'publish_date'
+  }else{
+    a = 'fixed_price'
+  }
   let page = req.params.page || 1;
   let perPage = 10;
   let output = {};
-  console.log(req.params.page);
+  console.log(c);
+  console.log(a);
   db.queryAsync("SELECT COUNT(1) total FROM `vb_books`")
     .then(results => {
       output.total = results[0].total;
       return db.queryAsync(
-        `SELECT * FROM vb_books LIMIT ${(page - 1) * perPage},${perPage}`
+        `SELECT * FROM vb_books WHERE categories ${c} ORDER BY ${a} DESC LIMIT ${(page - 1) * perPage},${perPage}`
       );
     })
     .then(results => {
@@ -99,5 +116,5 @@ app.use((req, response) => {
 });
 
 app.listen(5555, () => {
-  console.log("4000 連結成功");
+  console.log("5555 連結成功");
 });
