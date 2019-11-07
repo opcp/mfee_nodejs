@@ -9,9 +9,9 @@ const bluebird = require("bluebird");
 const app = express();
 const db = mysql.createConnection({
   // host: "192.168.27.186",
-  host: "localhost",
-  user: "opcp",
-  password: "opcp2428",
+  host: "192.168.27.186",
+  user: "root",
+  password: "root",
   database: "pbook"
 });
 db.connect(error => {
@@ -58,19 +58,17 @@ app.post("/categoryBar", (req, res) => {
 // SELECT * FROM `vb_books` WHERE `categories` = 16 ORDER BY `publish_date` DESC LIMIT 5
 //書本內容
 app.get("/reviews/:category?/:array?/:page?", (req, res) => {
-  let c = req.params.category
-  if(req.params.category == undefined){
-    c = ''
-  }else{
-    c = '='+ req.params.category
+  let c = "";
+  if (req.params.category != undefined) {
+    c = "=" + req.params.category;
   }
-  let a = req.params.array
-  if(req.params.array == 1){
-    a = 'page' 
-  }else if(req.params.array == 2){
-    a = 'publish_date'
-  }else{
-    a = 'fixed_price'
+  let a = req.params.array;
+  if (req.params.array == 1) {
+    a = "page";
+  } else if (req.params.array == 2) {
+    a = "publish_date";
+  } else {
+    a = "fixed_price";
   }
   let page = req.params.page || 1;
   let perPage = 10;
@@ -81,7 +79,9 @@ app.get("/reviews/:category?/:array?/:page?", (req, res) => {
     .then(results => {
       output.total = results[0].total;
       return db.queryAsync(
-        `SELECT * FROM vb_books WHERE categories ${c} ORDER BY ${a} DESC LIMIT ${(page - 1) * perPage},${perPage}`
+        `SELECT * FROM vb_books WHERE categories ${c} ORDER BY ${a} DESC LIMIT ${(page -
+          1) *
+          perPage},${perPage}`
       );
     })
     .then(results => {
@@ -96,7 +96,7 @@ app.get("/reviews/:category?/:array?/:page?", (req, res) => {
 
 app.get("/list/:sid?", (req, res) => {
   let sid = req.params.sid;
-  console.log(sid)
+  console.log(sid);
   const sql = `SELECT * FROM vb_books WHERE sid=${sid}`;
   db.query(sql, (error, results) => {
     if (error) {
