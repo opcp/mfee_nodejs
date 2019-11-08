@@ -1,4 +1,5 @@
 const express = require("express");
+const url = require("url");
 const mysql = require("mysql");
 const cors = require("cors");
 const morgan = require("morgan");
@@ -9,9 +10,9 @@ const bluebird = require("bluebird");
 const app = express();
 const db = mysql.createConnection({
   // host: "192.168.27.186",
-  host: "192.168.27.186",
-  user: "root",
-  password: "root",
+  host: "localhost",
+  user: "opcp",
+  password: "opcp2428",
   database: "pbook"
 });
 db.connect(error => {
@@ -41,6 +42,11 @@ app.get("/", (req, res) => {
   res.json({ success: true });
 });
 
+// app.get("/re/", (req, res) => {
+//   const urlpart = url.parse(req.url, true);
+//   console.log(urlpart);
+// });
+
 //分類
 app.post("/categoryBar", (req, res) => {
   const sql = "SELECT * FROM `vb_categories` WHERE 1";
@@ -54,27 +60,41 @@ app.post("/categoryBar", (req, res) => {
     }
   });
 });
+
+// let c = "";
+// if (req.params.category != undefined) {
+//   c = "=" + req.params.category;
+// }
+// let a = req.params.array;
+// if (req.params.array == 1) {
+//   a = "page";
+// } else if (req.params.array == 2) {
+//   a = "publish_date";
+// } else {
+//   a = "fixed_price";
+// }
+// /reviews/:category?/:array?/:page?
 // `SELECT * FROM vb_books LIMIT ${(page - 1) * perPage},${perPage}`
 // SELECT * FROM `vb_books` WHERE `categories` = 16 ORDER BY `publish_date` DESC LIMIT 5
 //書本內容
-app.get("/reviews/:category?/:array?/:page?", (req, res) => {
-  let c = "";
-  if (req.params.category != undefined) {
-    c = "=" + req.params.category;
-  }
-  let a = req.params.array;
-  if (req.params.array == 1) {
-    a = "page";
-  } else if (req.params.array == 2) {
-    a = "publish_date";
+app.get(`/reviews/?`, (req, res) => {
+  const urlpart = url.parse(req.url, true);
+  if (urlpart.query.c != undefined) {
+    c = "=" + urlpart.query.c;
   } else {
-    a = "fixed_price";
+    c = "";
   }
-  let page = req.params.page || 1;
+
+  if (urlpart.query.a == 1) {
+    a = "publish_date";
+  }else if(urlpart.query.a == 2){
+    a = "page"
+  }else{
+    a = "fixed_price"
+  }
+  page = urlpart.query.p || 1;
   let perPage = 10;
   let output = {};
-  console.log(c);
-  console.log(a);
   db.queryAsync("SELECT COUNT(1) total FROM `vb_books`")
     .then(results => {
       output.total = results[0].total;
