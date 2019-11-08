@@ -10,9 +10,9 @@ const bluebird = require("bluebird");
 const app = express();
 const db = mysql.createConnection({
   // host: "192.168.27.186",
-  host: "localhost",
-  user: "opcp",
-  password: "opcp2428",
+  host: "192.168.27.186",
+  user: "root",
+  password: "root",
   database: "pbook"
 });
 db.connect(error => {
@@ -41,11 +41,6 @@ app.use(morgan("dev"));
 app.get("/", (req, res) => {
   res.json({ success: true });
 });
-
-// app.get("/re/", (req, res) => {
-//   const urlpart = url.parse(req.url, true);
-//   console.log(urlpart);
-// });
 
 //分類
 app.post("/categoryBar", (req, res) => {
@@ -76,6 +71,8 @@ app.post("/categoryBar", (req, res) => {
 // /reviews/:category?/:array?/:page?
 // `SELECT * FROM vb_books LIMIT ${(page - 1) * perPage},${perPage}`
 // SELECT * FROM `vb_books` WHERE `categories` = 16 ORDER BY `publish_date` DESC LIMIT 5
+
+
 //書本內容
 app.get(`/reviews/?`, (req, res) => {
   const urlpart = url.parse(req.url, true);
