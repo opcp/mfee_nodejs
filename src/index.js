@@ -21,10 +21,8 @@ db.connect(error => {
   }
 });
 bluebird.promisifyAll(db);
-app.use(body_parser.urlencoded({ extended: false }))
-app.use(body_parser.json())
-
-
+app.use(body_parser.urlencoded({ extended: false }));
+app.use(body_parser.json());
 
 const whitelist = ["http://localhost:3001", "http://localhost:3000", undefined];
 const corsOptions = {
@@ -59,24 +57,7 @@ app.post("/categoryBar", (req, res) => {
     }
   });
 });
-
-// let c = "";
-// if (req.params.category != undefined) {
-//   c = "=" + req.params.category;
-// }
-// let a = req.params.array;
-// if (req.params.array == 1) {
-//   a = "page";
-// } else if (req.params.array == 2) {
-//   a = "publish_date";
-// } else {
-//   a = "fixed_price";
-// }
-// /reviews/:category?/:array?/:page?
-// `SELECT * FROM vb_books LIMIT ${(page - 1) * perPage},${perPage}`
-// SELECT * FROM `vb_books` WHERE `categories` = 16 ORDER BY `publish_date` DESC LIMIT 5
-
-
+//SELECT COUNT(1) FROM `vb_books` WHERE categories ${c}
 //書本內容
 app.get(`/reviews/?`, (req, res) => {
   const urlpart = url.parse(req.url, true);
@@ -88,15 +69,16 @@ app.get(`/reviews/?`, (req, res) => {
 
   if (urlpart.query.a == 1) {
     a = "publish_date";
-  }else if(urlpart.query.a == 2){
-    a = "page"
-  }else{
-    a = "fixed_price"
+  } else if (urlpart.query.a == 2) {
+    a = "page";
+  } else {
+    a = "fixed_price";
   }
   page = urlpart.query.p || 1;
   let perPage = 10;
   let output = {};
-  db.queryAsync("SELECT COUNT(1) total FROM `vb_books`")
+  let output_count = {}
+  db.queryAsync(`SELECT COUNT(1) total FROM vb_books WHERE categories ${c}`)
     .then(results => {
       output.total = results[0].total;
       return db.queryAsync(
@@ -113,8 +95,16 @@ app.get(`/reviews/?`, (req, res) => {
       console.log(error);
       res.send(error);
     });
+  db.queryAsync(
+    `SELECT COUNT(1) total FROM vb_books WHERE categories ${c}`
+  ).then(count=> {
+    output_count = count[0].total
+    // res.json(output)
+    console.log(count[0].total);
+  });
 });
 
+//書本單筆資料
 app.get("/book_reviews/:sid?", (req, res) => {
   let sid = req.params.sid;
   console.log(sid);
@@ -129,6 +119,8 @@ app.get("/book_reviews/:sid?", (req, res) => {
     }
   });
 });
+
+//書本各分類數量
 
 app.use((req, response) => {
   response.type("text/plain");
